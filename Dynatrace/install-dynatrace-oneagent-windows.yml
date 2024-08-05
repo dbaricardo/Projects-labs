@@ -1,0 +1,58 @@
+---
+- name: Install Dynatrace OneAgent on Windows
+  hosts: windows
+  become: yes
+
+  vars:
+    dynatrace_api_token: "{{ 'YOUR_DYNATRACE_API_TOKEN' }}"
+    dynatrace_environment_url: "{{ 'https://YOUR_DYNATRACE_ENVIRONMENT_URL' }}"
+    oneagent_installer_path: "{{ 'C:\\Temp\\Dynatrace-OneAgent-Windows.exe' }}"
+    oneagent_expected_path: "{{ 'C:\\Program Files\\dynatrace\\oneagent\\agent\\bin\\dtagent.exe' }}"
+    oneagent_service_name: "{{ 'Dynatrace OneAgent' }}"
+    
+  tasks:
+    - name: Fetch OneAgent installer URL
+      win_uri:
+        url: "{{ dynatrace_environment_url }}/v1/deployment/installer/agent/windows/default/latest"
+        method: GET
+        headers:
+          Authorization: "Api-Token {{ dynatrace_api_token }}"
+        return_content: yes
+        status_code: 200
+      register: installer_response
+
+    - name: Extract download URL from response
+      set_fact:
+        oneagent_download_url: "{{ installer_response.json.installer.downloadUrl }}"
+
+    - name: Download OneAgent installer
+      win_get_url:
+        url: "{{ oneagent_download_url }}"
+        dest: "{{ oneagent_installer_path }}"
+
+    - name: Install OneAgent
+      win_shell: "{{ oneagent_installer_path }} /quiet /norestart"
+      args:
+        creates: "{{ oneagent_expected_path }}"
+
+    - name: Validate OneAgent installation
+      win_stat:
+        path: "{{ oneagent_expected_path }}"
+      register: oneagent_installation
+
+    - name: Check if OneAgent installation is successful
+      win_assert:
+        that:
+          - oneagent_installation.stat.exists
+        fail_msg: "OneAgent installation failed. The installer did not create the expected file."
+
+    - name: Check OneAgent service status
+      win_shell: "sc query '{{ oneagent_service_name }}' | findstr /i 'RUNNING'"
+      register: oneagent_service_status
+      failed_when: "'RUNNING' not in oneagent_service_status.stdout"
+
+    - name: Ensure OneAgent service is running
+      win_assert:
+        that:
+          - "'RUNNING' in oneagent_service_status.stdout"
+        fail_msg: "OneAgent service is not running."

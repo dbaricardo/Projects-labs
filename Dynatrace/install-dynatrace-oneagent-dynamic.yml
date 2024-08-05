@@ -1,0 +1,86 @@
+---
+- name: Install Dynatrace OneAgent
+  hosts: all
+  become: yes
+
+  vars:
+    dynatrace_api_token: "{{ 'YOUR_DYNATRACE_API_TOKEN' }}"
+    dynatrace_environment_url: "{{ 'https://YOUR_DYNATRACE_ENVIRONMENT_URL' }}"
+    oneagent_installer_path_windows: "{{ 'C:\\Temp\\Dynatrace-OneAgent-Windows.exe' }}"
+    oneagent_installer_path_linux: "{{ '/tmp/Dynatrace-OneAgent-Linux.sh' }}"
+    oneagent_expected_path_windows: "{{ 'C:\\Program Files\\dynatrace\\oneagent\\agent\\bin\\dtagent.exe' }}"
+    oneagent_expected_path_linux: "{{ '/opt/dynatrace/oneagent/agent/bin/dtagent' }}"
+    oneagent_service_name_windows: "{{ 'Dynatrace OneAgent' }}"
+    oneagent_service_name_linux: "{{ 'dynatrace-oneagent' }}"
+
+  tasks:
+    - name: Fetch OneAgent installer URL
+      uri:
+        url: "{{ dynatrace_environment_url }}/v1/deployment/installer/agent/{{ ansible_os_family | lower }}/default/latest"
+        method: GET
+        headers:
+          Authorization: "Api-Token {{ dynatrace_api_token }}"
+        return_content: yes
+        status_code: 200
+      register: installer_response
+
+    - name: Extract download URL from response
+      set_fact:
+        oneagent_download_url: "{{ installer_response.json.installer.downloadUrl }}"
+
+    - name: Download OneAgent installer on Windows
+      win_get_url:
+        url: "{{ oneagent_download_url }}"
+        dest: "{{ oneagent_installer_path_windows }}"
+      when: ansible_os_family == 'Windows'
+
+    - name: Download OneAgent installer on Linux
+      get_url:
+        url: "{{ oneagent_download_url }}"
+        dest: "{{ oneagent_installer_path_linux }}"
+        mode: '0755'
+      when: ansible_os_family == 'Linux'
+
+    - name: Install OneAgent on Windows
+      win_shell: "{{ oneagent_installer_path_windows }} /quiet /norestart"
+      args:
+        creates: "{{ oneagent_expected_path_windows }}"
+      when: ansible_os_family == 'Windows'
+
+    - name: Install OneAgent on Linux
+      shell: "{{ oneagent_installer_path_linux }} --quiet"
+      args:
+        creates: "{{ oneagent_expected_path_linux }}"
+      when: ansible_os_family == 'Linux'
+
+    - name: Validate OneAgent installation on Windows
+      win_stat:
+        path: "{{ oneagent_expected_path_windows }}"
+      register: oneagent_installation
+      when: ansible_os_family == 'Windows'
+
+    - name: Validate OneAgent installation on Linux
+      stat:
+        path: "{{ oneagent_expected_path_linux }}"
+      register: oneagent_installation
+      when: ansible_os_family == 'Linux'
+
+    - name: Check if OneAgent installation is successful
+      assert:
+        that:
+          - oneagent_installation.stat.exists
+        fail_msg: "OneAgent installation failed. The installer did not create the expected file."
+
+    - name: Check OneAgent service status on Windows
+      win_service:
+        name: "{{ oneagent_service_name_windows }}"
+        start_mode: auto
+        state: started
+      when: ansible_os_family == 'Windows'
+
+    - name: Check OneAgent service status on Linux
+      service:
+        name: "{{ oneagent_service_name_linux }}"
+        enabled: yes
+        state: started
+      when: ansible_os_family == 'Linux'
