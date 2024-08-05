@@ -3,9 +3,9 @@
   hosts: localhost
   become: yes
   gather_facts: yes
-  become_method: su
-  become_user: root
+  become_method: runas
+  become_user: Administrator
   tasks:
     - name: Install Dynatrace OneAgent on Windows
-      include_tasks: tasks/itm_installer.yml
+      include_tasks: tasks/test.yml
     #  include_tasks: tasks/delete-{{ ansible_os_family
