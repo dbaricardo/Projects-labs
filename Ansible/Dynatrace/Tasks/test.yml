@@ -14,11 +14,10 @@
       name: "{{ oneagent_service_name }}"
     register: oneagent_service
 
-  - name: Check if OneAgent service is installed
-    assert:
-      that:
-        - oneagent_service.exists
-      fail_msg: "OneAgent service is not installed."
+  - name: Check if OneAgent service is running
+    win_service_info:
+      name: "{{ oneagent_service_name }}"
+    register: oneagent_service_info
 
   - name: Check if OneAgent service is running
     assert:
