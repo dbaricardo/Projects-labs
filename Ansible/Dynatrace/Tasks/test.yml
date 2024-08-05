@@ -5,7 +5,7 @@
       Invoke-WebRequest -Uri '{{ dynatrace_environment_url }}/api/v1/deployment/installer/agent/windows/default/latest?arch=x86' -Headers @{ 'Authorization' = 'Api-Token {{ dynatrace_api_token }}' } -OutFile '{{ oneagent_installer_path }}'
 
   - name: Install OneAgent
-    win_shell: "{{ oneagent_installer_path }} --set-monitoring-mode=fullstack --set-app-log-content-access=true /quiet /norestart"
+    win_shell: "{{ oneagent_installer_path }} --set-monitoring-mode=infra-only --set-app-log-content-access=true /quiet /norestart"
     args:
       creates: "{{ oneagent_expected_path }}"
 
