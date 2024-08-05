@@ -1,4 +1,4 @@
-  block:
+---
   - name: Download OneAgent installer using PowerShell
     win_shell: |
       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
@@ -30,6 +30,3 @@
       that:
         - "'oneagentos.exe' in oneagent_process_status.stdout"
       fail_msg: "OneAgent process is not running."
-  rescue:
-    - name: Uninstall OneAgent if installation failed
-      win_shell: "msiexec /x {{ oneagent_installer_path }} /quiet /norestart"
