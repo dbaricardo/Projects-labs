@@ -31,6 +31,6 @@
         that:
           - "'oneagentos.exe' in oneagent_process_status.stdout"
         fail_msg: "OneAgent process is not running."
-    - rescue:
-      - name: Uninstall OneAgent if installation failed
-        win_shell: "msiexec /x {{ oneagent_installer_path }} /quiet /norestart"
+  - rescue:
+    - name: Uninstall OneAgent if installation failed
+      win_shell: "msiexec /x {{ oneagent_installer_path }} /quiet /norestart"
