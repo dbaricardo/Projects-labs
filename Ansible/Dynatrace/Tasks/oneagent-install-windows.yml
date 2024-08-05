@@ -55,3 +55,4 @@
         that:
           - "'RUNNING' in oneagent_service_status.stdout"
         fail_msg: "OneAgent service is not running."
+        
