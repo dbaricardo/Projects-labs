@@ -1,44 +1,33 @@
 ---
-- name: Install Dynatrace OneAgent on Windows
-  hosts: windows
-  become: yes
 
-  vars:
-    dynatrace_api_token: "YOUR_DYNATRACE_API_TOKEN"
-    dynatrace_environment_url: "https://YOUR_DYNATRACE_ENVIRONMENT_URL"
-    oneagent_installer_path: "C:\\Temp\\Dynatrace-OneAgent-Windows.exe"
-    oneagent_expected_path: "C:\\Program Files\\dynatrace\\oneagent\\agent\\bin\\dtagent.exe"
-    oneagent_service_name: "Dynatrace OneAgent"
+  - name: Download OneAgent installer using PowerShell
+    win_shell: |
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
+      Invoke-WebRequest -Uri '{{ dynatrace_environment_url }}/api/v1/deployment/installer/agent/windows/default/latest?arch=x86' -Headers @{ 'Authorization' = 'Api-Token {{ dynatrace_api_token }}' } -OutFile '{{ oneagent_installer_path }}'
 
-  tasks:
-    - name: Download OneAgent installer using PowerShell
-      win_shell: |
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
-        Invoke-WebRequest -Uri '{{ dynatrace_environment_url }}/api/v1/deployment/installer/agent/windows/default/latest?arch=x86' -Headers @{ 'Authorization' = 'Api-Token {{ dynatrace_api_token }}' } -OutFile '{{ oneagent_installer_path }}'
+  - name: Install OneAgent
+    win_shell: "{{ oneagent_installer_path }} /quiet /norestart"
+    args:
+      creates: "{{ oneagent_expected_path }}"
 
-    - name: Install OneAgent
-      win_shell: "{{ oneagent_installer_path }} /quiet /norestart"
-      args:
-        creates: "{{ oneagent_expected_path }}"
+  - name: Validate OneAgent installation
+    win_stat:
+      path: "{{ oneagent_expected_path }}"
+    register: oneagent_installation
 
-    - name: Validate OneAgent installation
-      win_stat:
-        path: "{{ oneagent_expected_path }}"
-      register: oneagent_installation
+  - name: Check if OneAgent installation is successful
+    win_assert:
+      that:
+        - oneagent_installation.stat.exists
+      fail_msg: "OneAgent installation failed. The installer did not create the expected file."
 
-    - name: Check if OneAgent installation is successful
-      win_assert:
-        that:
-          - oneagent_installation.stat.exists
-        fail_msg: "OneAgent installation failed. The installer did not create the expected file."
+  - name: Check OneAgent service status
+    win_shell: "sc query '{{ oneagent_service_name }}' | findstr /i 'RUNNING'"
+    register: oneagent_service_status
+    failed_when: "'RUNNING' not in oneagent_service_status.stdout"
 
-    - name: Check OneAgent service status
-      win_shell: "sc query '{{ oneagent_service_name }}' | findstr /i 'RUNNING'"
-      register: oneagent_service_status
-      failed_when: "'RUNNING' not in oneagent_service_status.stdout"
-
-    - name: Ensure OneAgent service is running
-      win_assert:
-        that:
-          - "'RUNNING' in oneagent_service_status.stdout"
-        fail_msg: "OneAgent service is not running."
+  - name: Ensure OneAgent service is running
+    win_assert:
+      that:
+        - "'RUNNING' in oneagent_service_status.stdout"
+      fail_msg: "OneAgent service is not running."

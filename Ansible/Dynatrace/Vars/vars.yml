@@ -1,0 +1,5 @@
+    dynatrace_api_token: #"YOUR_DYNATRACE_API_TOKEN"
+    dynatrace_environment_url: #"https://YOUR_DYNATRACE_ENVIRONMENT_URL"
+    oneagent_installer_path: #"C:\\Temp\\Dynatrace-OneAgent-Windows.exe"
+    oneagent_expected_path: #"C:\\Program Files\\dynatrace\\oneagent\\agent\\bin\\dtagent.exe"
+    oneagent_service_name: #"Dynatrace OneAgent"
