@@ -14,13 +14,19 @@
       name: "{{ oneagent_service_name }}"
     register: oneagent_service
 
-  - name: Check if OneAgent service is running
-    win_service_info:
-      name: "{{ oneagent_service_name }}"
-    register: oneagent_service_info
-
-  - name: Check if OneAgent service is running
+  - name: Check if OneAgent service is installed
     assert:
       that:
-        - oneagent_service.status == 'running'
+        - oneagent_service.exists
+      fail_msg: "OneAgent service is not installed."
+
+  - name: Check if OneAgent service is running
+    win_shell: "sc query '{{ oneagent_service_name }}' | findstr /i 'RUNNING'"
+    register: oneagent_service_status
+    failed_when: "'RUNNING' not in oneagent_service_status.stdout"
+
+  - name: Ensure OneAgent service is running
+    assert:
+      that:
+        - "'RUNNING' in oneagent_service_status.stdout"
       fail_msg: "OneAgent service is not running."
