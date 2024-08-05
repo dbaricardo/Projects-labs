@@ -15,7 +15,7 @@
     register: oneagent_installation
 
   - name: Check if OneAgent installation is successful
-    win_assert:
+    assert:
       that:
         - oneagent_installation.stat.exists
       fail_msg: "OneAgent installation failed. The installer did not create the expected file."
@@ -26,7 +26,7 @@
     failed_when: "'RUNNING' not in oneagent_service_status.stdout"
 
   - name: Ensure OneAgent service is running
-    win_assert:
+    assert:
       that:
         - "'RUNNING' in oneagent_service_status.stdout"
       fail_msg: "OneAgent service is not running."
