@@ -1,4 +1,5 @@
-- block:
+- name: Install and validate OneAgent
+  block:
     - name: Install OneAgent
       win_shell: "{{ oneagent_installer_path }} --set-monitoring-mode=infra-only --set-app-log-content-access=true /quiet /norestart"
       args:

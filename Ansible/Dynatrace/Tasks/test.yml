@@ -1,32 +1,35 @@
-- name: Install and validate OneAgent
   block:
-    - name: Install OneAgent
-      win_shell: "{{ oneagent_installer_path }} --set-monitoring-mode=infra-only --set-app-log-content-access=true /quiet /norestart"
-      args:
-        creates: "{{ oneagent_expected_path }}"
+  - name: Download OneAgent installer using PowerShell
+    win_shell: |
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
+      Invoke-WebRequest -Uri '{{ dynatrace_environment_url }}/api/v1/deployment/installer/agent/windows/default/latest?arch=x86' -Headers @{ 'Authorization' = 'Api-Token {{ dynatrace_api_token }}' } -OutFile '{{ oneagent_installer_path }}'
 
-    - name: Validate OneAgent service installation
-      win_service:
-        name: "{{ oneagent_service_name }}"
-      register: oneagent_service
+  - name: Install OneAgent
+    win_shell: "{{ oneagent_installer_path }} --set-monitoring-mode=infra-only --set-app-log-content-access=true /quiet /norestart"
+    args:
+      creates: "{{ oneagent_expected_path }}"
 
-    - name: Check if OneAgent service is installed
-      assert:
-        that:
-          - oneagent_service.exists
-        fail_msg: "OneAgent service is not installed."
+  - name: Validate OneAgent service installation
+    win_service:
+      name: "{{ oneagent_service_name }}"
+    register: oneagent_service
 
-    - name: Check if OneAgent process is running
-      win_shell: "tasklist /FI 'IMAGENAME eq oneagentos.exe'"
-      register: oneagent_process_status
-      failed_when: "'oneagentos.exe' not in oneagent_process_status.stdout"
+  - name: Check if OneAgent service is installed
+    assert:
+      that:
+        - oneagent_service.exists
+      fail_msg: "OneAgent service is not installed."
 
-    - name: Ensure OneAgent process is running
-      assert:
-        that:
-          - "'oneagentos.exe' in oneagent_process_status.stdout"
-        fail_msg: "OneAgent process is not running."
+  - name: Check if OneAgent process is running
+    win_shell: "tasklist /FI 'IMAGENAME eq oneagentos.exe'"
+    register: oneagent_process_status
+    failed_when: "'oneagentos.exe' not in oneagent_process_status.stdout"
 
+  - name: Ensure OneAgent process is running
+    assert:
+      that:
+        - "'oneagentos.exe' in oneagent_process_status.stdout"
+      fail_msg: "OneAgent process is not running."
   rescue:
     - name: Uninstall OneAgent if installation failed
       win_shell: "msiexec /x {{ oneagent_installer_path }} /quiet /norestart"
