@@ -1,6 +1,6 @@
 ---
 - name: Install Dynatrace OneAgent on Windows
-  hosts: localhost
+  hosts: {{ windows_hosts }}
   become: yes
   gather_facts: yes
   become_method: runas
