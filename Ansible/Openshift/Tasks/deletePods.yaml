@@ -1,0 +1,95 @@
+---
+- name: Self-Healing Playbook for Garbage Collection in Azure Red Hat OpenShift
+  hosts: localhost
+  gather_facts: false 
+  tasks:
+    - name: Ensure Azure login was successful
+      fail:
+        msg: "Azure login failed"
+      when: azure_login is failed
+
+    - name: Get OpenShift token from Key Vault
+      azure.azcollection.azure_keyvault_secret_info:
+        secret_name: "{{ secret_name }}"
+        vault_uri: "https://{{ key_vault_name }}.vault.azure.net/"
+      register: aro_token
+
+    - name: Set ARO token fact
+      set_fact:
+        aro_token_value: "{{ aro_token.secrets[0].value }}"
+
+    - name: Log in to OpenShift
+      community.okd.oc_login:
+        state: present
+        server: "{{ aro_api_url }}"
+        token: "{{ aro_token_value }}"
+
+    - name: Ensure OpenShift login was successful
+      fail:
+        msg: "OpenShift login failed"
+      when: oc_login is failed
+
+    - name: Get selected pods
+      community.okd.k8s_info:
+        kind: Pod
+        namespace: "{{ namespace }}"
+        label_selectors:
+          - "{{ selective_label }}"
+      register: selected_pods
+
+    - name: Add label to selected pods
+      community.okd.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: "{{ item.metadata.name }}"
+            namespace: "{{ namespace }}"
+            labels:
+              {{ problematic_pod_label.split('=')[0] }}: "{{ problematic_pod_label.split('=')[1] }}"
+      loop: "{{ selected_pods.resources }}"
+      loop_control:
+        label: "{{ item.metadata.name }}"
+
+    - name: Check for Garbage Collector issues
+      community.okd.k8s_exec:
+        namespace: "{{ namespace }}"
+        pod: "{{ item.metadata.name }}"
+        command: "grep -i 'error' /var/log/garbage-collector.log"
+      register: gc_logs
+      failed_when: false
+      loop: "{{ selected_pods.resources }}"
+      loop_control:
+        label: "{{ item.metadata.name }}"
+
+    - name: Determine if action is needed
+      set_fact:
+        action_needed: "{{ gc_logs.results | selectattr('stdout', 'ne', '') | list | length > 0 }}"
+
+    - name: Notify if no issues found
+      debug:
+        msg: "No garbage collector issues found."
+      when: not action_needed
+
+    - name: Restart problematic pods
+      community.okd.k8s:
+        state: absent
+        kind: Pod
+        namespace: "{{ namespace }}"
+        label_selectors:
+          - "{{ problematic_pod_label }}"
+      when: action_needed
+
+    - name: Scale replicas up
+      community.okd.k8s:
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: "{{ problematic_pod_label.split('=')[1] }}"
+            namespace: "{{ namespace }}"
+          spec:
+            replicas: {{ replicas}}
+      when: action_needed
