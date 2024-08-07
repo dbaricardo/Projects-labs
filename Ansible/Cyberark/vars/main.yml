@@ -1,13 +1,39 @@
 ---
-# vars/main.yml
-vault_url: "https://your-keyvault-url.vault.azure.net/" # URL do KeyVault
-secret_name: "cyberark-credentials" # Nome do segredo a ser recuperado
-client_id: "your-client-id" # ID do cliente para autenticação
-client_secret: "your-client-secret" # Segredo do cliente para autenticação
-tenant: "your-tenant-id" # ID do locatário para autenticação
-cyberark_api_base_url:  # URL base da API do CyberArk
-cyberark_safe: "Test"  # Nome do cofre (safe)
-cyberark_address:  # Endereço da conta
-cyberark_platform_id: "WinServerLocal"
-cyberark_logon_domain: "cyberark"
-cyberark_new_secret: "@N&Ibl3!"
+keyvault_url:                 #"https://your-keyvault-url.vault.azure.net/"   URL do KeyVault
+secret_name:                  #"cyberark-credentials"   Nome do segredo a ser recuperado
+client_id:                    #"your-client-id"   ID do cliente para autenticação
+client_secret:                #"your-client-secret"   Segredo do cliente para autenticação
+tenant_id:                    #"your-tenant-id"   ID do locatário para autenticação
+cyberark_api_base_url:        #"http://components.cyberark.local"   URL base da API do CyberArk
+cyberark_username:            #"bizdev"   Nome de usuário para autenticação no CyberArk
+cyberark_password:            #"Cyberark1"   Senha para autenticação no CyberArk
+account_safe:                 #"Test"   Nome do cofre (safe) para a conta
+account_address:              #"cyberark.local"   Endereço da conta a ser criada
+account_username:             #"administrator-x"   Nome de usuário da conta a ser criada
+account_platform_id:          #"WinServerLocal"   ID da plataforma da conta a ser criada
+account_secret:               #"@N&Ibl3!"   Senha da conta a ser criada
+account_logon_domain:         #"cyberark"   Domínio de logon da conta a ser criada
+account_owner_name:           #"ansible_user"   Nome do proprietário da conta a ser criada
+
+# Reconcile use only # 
+#reconcile_safe:               #"Domain_Admins"   Nome do cofre (safe) para a conta a ser reconciliada
+#reconcile_address:            #"prod.cyberark.local"   Endereço da conta a ser reconciliada
+#reconcile_username:           #"admin"   Nome de usuário da conta a ser reconciliada
+#reconcile_platform_id:        #"WinDomain"   ID da plataforma da conta a ser reconciliada
+#reconcile_logon_domain:       #"PROD"   Domínio de logon da conta a ser reconciliada
+#reconcile_new_secret:         #"Ama123ah12@!Xaamdjbdkl@112"   Nova senha para a reconciliação
+
+
+
+
+#vault_url: "https://your-keyvault-url.vault.azure.net/"  URL do KeyVault
+#secret_name: "cyberark-credentials"  Nome do segredo a ser recuperado
+#client_id: "your-client-id"  ID do cliente para autenticação
+#client_secret: "your-client-secret"  Segredo do cliente para autenticação
+#tenant: "your-tenant-id"  ID do locatário para autenticação
+#cyberark_api_base_url:   URL base da API do CyberArk
+#cyberark_safe: "Test"   Nome do cofre (safe)
+#cyberark_address:   Endereço da conta
+#cyberark_platform_id: "WinServerLocal"
+#cyberark_logon_domain: "cyberark"
+#cyberark_new_secret: "@N&Ibl3!"

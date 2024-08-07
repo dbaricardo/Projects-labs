@@ -1,6 +1,8 @@
 ---
 # tasks/main.yml
-- include_tasks: retrieve_password.yml
-- include_tasks: login_cyberark.yml
-- include_tasks: rotate_credential.yml
-- include_tasks: logoff_cyberark.yml
+- include_tasks: cyberark_integration_test
+
+#- include_tasks: retrieve_password.yml
+#- include_tasks: login_cyberark.yml
+#- include_tasks: rotate_credential.yml
+#- include_tasks: logoff_cyberark.yml
