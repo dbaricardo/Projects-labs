@@ -1,0 +1,12 @@
+---
+# vars/main.yml
+vault_uri: "https://myvault.vault.azure.net/"
+secret_name: "mysecret"
+cyberark_api_base_url: "https://cyberark.example.com"
+cyberark_username: "admin"
+cyberark_password: "{{ keyvault_secret.secret }}"
+cyberark_safe: "Domain_Admins"
+cyberark_address: "prod.cyberark.local"
+cyberark_platform_id: "WinDomain"
+cyberark_logon_domain: "PROD"
+cyberark_new_secret: "Ama123ah12@#!Xaamdjbdkl@#112"

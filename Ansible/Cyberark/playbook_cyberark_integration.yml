@@ -1,0 +1,5 @@
+---
+- name: Playbook Example
+  hosts: all
+  roles:
+    - cyberark

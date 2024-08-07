@@ -1,0 +1,6 @@
+---
+# tasks/logoff_cyberark.yml
+- name: Logoff from CyberArk Vault
+  cyberark_authentication:
+    state: absent
+    cyberark_session: "{{ cyberark_session }}"
