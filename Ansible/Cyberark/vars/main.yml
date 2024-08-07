@@ -1,12 +1,13 @@
 ---
 # vars/main.yml
-vault_uri: "https://myvault.vault.azure.net/"
-secret_name: "mysecret"
-cyberark_api_base_url: "https://cyberark.example.com"
-cyberark_username: "admin"
-cyberark_password: "{{ keyvault_secret.secret }}"
-cyberark_safe: "Domain_Admins"
-cyberark_address: "prod.cyberark.local"
-cyberark_platform_id: "WinDomain"
-cyberark_logon_domain: "PROD"
-cyberark_new_secret: "Ama123ah12@#!Xaamdjbdkl@#112"
+vault_url: "https://your-keyvault-url.vault.azure.net/" # URL do KeyVault
+secret_name: "cyberark-credentials" # Nome do segredo a ser recuperado
+client_id: "your-client-id" # ID do cliente para autenticação
+client_secret: "your-client-secret" # Segredo do cliente para autenticação
+tenant: "your-tenant-id" # ID do locatário para autenticação
+cyberark_api_base_url:  # URL base da API do CyberArk
+cyberark_safe: "Test"  # Nome do cofre (safe)
+cyberark_address:  # Endereço da conta
+cyberark_platform_id: "WinServerLocal"
+cyberark_logon_domain: "cyberark"
+cyberark_new_secret: "@N&Ibl3!"

@@ -2,7 +2,7 @@
 # tasks/login_cyberark.yml
 - name: Log in to CyberArk Vault
   cyberark_authentication:
-    api_base_url: "{{ cyberark_api_base_url }}"
+    api_base_url: "{{ cyberark_api_base_url }}" 
     username: "{{ cyberark_username }}"
     password: "{{ cyberark_password }}"
     state: present
